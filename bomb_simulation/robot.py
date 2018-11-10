@@ -10,6 +10,7 @@ class Robot:
         self.direction = 1
         self.done = False
         self.bomb_found = False
+        self.last_reading = 0
 
     def __str__(self):
         grid_string = 'Robot ' + str(self.id) + '\n'
@@ -31,16 +32,25 @@ class Robot:
             if self.measure() == 10:
                 self.bomb_found = True
                 self.done = True
+            elif self.measure() < self.last_reading:
+                print("Turning Around")
+                self.last_reading = self.measure()
+                self.current_location[1] += 1
+                self.direction = -1 * self.direction
             else:
-                self.current_location[0] += self.direction
-                if self.current_location[0] >= self.grid.width:
+                if (self.current_location[0] + self.direction) == self.grid.width:
+                    self.last_reading = self.measure()
                     self.current_location[1] += 1
                     self.direction = -1 * self.direction
-                    self.current_location[0] = self.grid.width -1
-                elif self.current_location[0] < 0:
+                elif (self.current_location[0] + self.direction) == 0:
+                    self.last_reading = self.measure()
                     self.current_location[1] += 1
                     self.direction = -1 * self.direction
-                    self.current_location[0] = 0
-                if self.current_location[1] >= self.grid.height:
+                else:
+                    self.last_reading = self.measure()
+                    self.current_location[0] += self.direction
+
+                if self.current_location[1] == self.grid.height:
                     self.current_location[1] = self.grid.height - 1
                     self.done = True
+

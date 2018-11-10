@@ -5,13 +5,19 @@ from bomb_simulation.robot import Robot
 class RobotController:
     def __init__(self, id):
         self.id = id
-        self.grid = Grid(9, 9)
+        self.grid = Grid(16, 16)
         self.grid.init_bomb(4, 4, 10)
         self.robot = Robot(1, self.grid, [0, 0], [])
         self.robot2 = Robot(1, self.grid, [5, 5], [])
-        self.heat_map = Grid(9, 9)
+        self.heat_map = Grid(16, 16)
 
     def go(self):
+        x = self.robot.current_location[0]
+        y = self.robot.current_location[1]
+        self.heat_map.cells[x][y] = self.robot.measure()
+        x = self.robot2.current_location[0]
+        y = self.robot2.current_location[1]
+        self.heat_map.cells[x][y] = self.robot2.measure()
         while not self.robot.done or not self.robot2.done:
             self.robot.go()
             self.robot2.go()
