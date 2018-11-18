@@ -1,56 +1,82 @@
-
-
 class Robot:
-    def __init__(self, id, grid, starting_point, boundry):
+    def __init__(self, id, grid, starting_point, heat_map, true_starting_point, slow=False):
         self.id = id
         self.grid = grid
+        self.true_starting_point = true_starting_point
         self.starting_point = starting_point
         self.current_location = starting_point
-        self.boundry = boundry
-        self.direction = 1
+        self.heat_map = heat_map
         self.done = False
         self.bomb_found = False
         self.last_reading = 0
+        self.fast = True
+        self.max = 0
+        self.max_location = [0,0]
+        self.row_direction = 1
+        self.x_direction = 1
+        self.y_direction = 0
+        if slow:
+            self.fast = False
 
     def __str__(self):
         grid_string = 'Robot ' + str(self.id) + '\n'
         grid_string += '(' + str(self.current_location[0]) + ',' + str(self.current_location[1]) + ')\n'
-        for y in range(self.grid.height):
-            for x in range(self.grid.width):
-                if x == self.current_location[0] and y == self.current_location[1]:
-                    grid_string += ' |' + 'RR' + '| '
-                else:
-                    grid_string += ' |' + str("%2d" % self.grid.cells[x][y]) + '| '
-            grid_string += '\n'
         return grid_string
 
     def measure(self):
         return self.grid.cells[self.current_location[0]][self.current_location[1]]
 
+    def share(self, robot):
+        robot.add_max_to_heat_map(self.max, self.max_location)
+
+    def add_max_to_heat_map(self, other_max, max_location):
+        self.heat_map.cells[max_location[0]][max_location[1]] = other_max
+
     def go(self):
         if self.done is not True and self.bomb_found is not True:
+            if self.measure() > self.max:
+                self.max = self.measure()
+                self.max_location[0] = self.current_location[0] + self.true_starting_point[0]
+                self.max_location[1] = self.current_location[1] + self.true_starting_point[1]
+                self.heat_map.cells[self.max_location[0]][self.max_location[1]] = self.max
+                print(str(self.max_location[0]) + ' ' + str(self.max_location[1]))
+                print(self.heat_map)
+
             if self.measure() == 10:
                 self.bomb_found = True
                 self.done = True
-            elif self.measure() < self.last_reading:
-                print("Turning Around")
-                self.last_reading = self.measure()
-                self.current_location[1] += 1
-                self.direction = -1 * self.direction
             else:
-                if (self.current_location[0] + self.direction) == self.grid.width:
-                    self.last_reading = self.measure()
-                    self.current_location[1] += 1
-                    self.direction = -1 * self.direction
-                elif (self.current_location[0] + self.direction) == 0:
-                    self.last_reading = self.measure()
-                    self.current_location[1] += 1
-                    self.direction = -1 * self.direction
+                if self.fast and self.measure() - self.max <= -2:
+                    if self.current_location[1] - 2 < 0:
+                        self.y_direction = 0
+                        self.x_direction = 0
+                    else:
+                        self.y_direction = -2
+                        self.x_direction = 0
+                        self.row_direction = self.row_direction * 1
+                        self.max = self.measure()
+                elif self.fast and self.measure() < self.last_reading:
+                        if self.current_location[1] + 1 == self.grid.height:
+                            self.done = True
+                            self.y_direction = 0
+                            self.x_direction = 0
+                        else:
+                            self.y_direction = 1
+                            self.x_direction = 0
+                            self.row_direction = self.row_direction * -1
                 else:
-                    self.last_reading = self.measure()
-                    self.current_location[0] += self.direction
-
-                if self.current_location[1] == self.grid.height:
-                    self.current_location[1] = self.grid.height - 1
-                    self.done = True
+                    if (self.current_location[0] + self.x_direction) == self.grid.width:
+                        self.y_direction = 1
+                        self.x_direction = 0
+                        self.row_direction = self.row_direction * -1
+                    elif (self.current_location[0] + self.x_direction) == -1:
+                        self.y_direction = 1
+                        self.x_direction = 0
+                        self.row_direction = self.row_direction * -1
+                    else:
+                        self.y_direction = 0
+                        self.x_direction = self.row_direction
+                self.last_reading = self.measure()
+                self.current_location[0] += self.x_direction
+                self.current_location[1] += self.y_direction
 
