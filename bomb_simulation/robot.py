@@ -36,8 +36,8 @@ class Robot:
         if self.done is not True and self.bomb_found is not True:
             if self.measure() > self.max:
                 self.max = self.measure()
-                self.max_location[0] = self.current_location[0] + self.true_starting_point[0]
-                self.max_location[1] = self.current_location[1] + self.true_starting_point[1]
+                self.max_location[0] = self.current_location[0]
+                self.max_location[1] = self.current_location[1]
                 self.heat_map.cells[self.max_location[0]][self.max_location[1]] = self.max
                 print(str(self.max_location[0]) + ' ' + str(self.max_location[1]))
                 print(self.heat_map)

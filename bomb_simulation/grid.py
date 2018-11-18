@@ -4,6 +4,7 @@ class Grid:
         self.height = height
         self.bomb_location = None
         self.cells = [[0 for i in range(self.height)] for j in range(self.width)]
+        self.drawn = [[False for i in range(self.height)] for j in range(self.width)]
 
     def init_bomb(self, x, y, strength):
         self.bomb_location = [x, y]
