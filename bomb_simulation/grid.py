@@ -1,3 +1,5 @@
+from statistics import stdev, mean, variance
+
 class Grid:
     def __init__(self, width, height):
         self.width = width
@@ -41,3 +43,36 @@ class Grid:
                     grid_string += ' |' + '  ' + '| '
             grid_string += '\n'
         return grid_string
+
+    def semivariance(self):
+        data = []
+        for y0 in range(self.height):
+            for x0 in range(self.width):
+                if self.cells[x0][y0] > 0:
+                    for h in range(1, self.width):
+                        temp = []
+                        for hY in range(-h, h+1):
+                            for hX in range(-h, h+1):
+                                if abs(hX)+abs(hY) == h and x0 + hX < self.width and y0+hY < self.height and x0 + hX >= 0 and y0 + hY >= 0:
+                                    temp.append(abs(self.cells[x0][y0] - self.cells[x0+hX][y0+hY]))
+                        if len(data) > h-1:
+                            data[h-1].extend(temp)
+                        else:
+                            data.append(temp)
+        lag = 1
+        print ('Lag,', 'SV')
+        for i in data:
+            gamma = 0
+            for point in i:
+                gamma += pow(point, 2)
+            gamma = 1 / (2 * len(i)) * gamma
+            print(lag, ',', gamma)
+            lag += 1
+        print(self)
+
+
+if __name__ == "__main__":
+    grid = Grid(32, 32)
+    grid.init_bomb(7, 7, 10)
+    grid.semivariance()
+

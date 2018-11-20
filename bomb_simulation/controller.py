@@ -1,65 +1,55 @@
 from bomb_simulation.grid import Grid
-from bomb_simulation.robot import Robot
-from random import randrange
 from turtle import *
 
 
 class RobotController:
-    def __init__(self, id, gw, gh, r2x, r2y):
+    def __init__(self, grid, robots, ui=True, asci=True):
         self.id = id
-        self.grid = Grid(gw, gh)
-        self.r2x = r2x
-        self.r2y = r2y
-        self.grid.init_bomb(randrange(0, gw), randrange(0, gh), 10)
-        self.heat_map = Grid(gw, gh)
-        self.heat_map1 = Grid(gw, gh)
-        self.heat_map2 = Grid(gw, gh)
-        self.r1_boundary = self.grid.split_grid(0, 0, 16, 16)
-        self.r2_boundary = self.grid.split_grid(self.r2x, self.r2y, (gw - self.r2x), (gh - self.r2y))
-        self.robot = Robot(1, self.r1_boundary, [0, 0], self.heat_map1, [0,0], False)
-        self.r2Star = 7
-        self.robot2 = Robot(2, self.r2_boundary, [0, self.r2Star], self.heat_map2, [self.r2x, self.r2y+self.r2Star], False)
+        self.grid = grid
+        self.heat_map = Grid(grid.width, grid.height)
+        self.heat_map1 = Grid(grid.width, grid.height)
+        self.heat_map2 = Grid(grid.width, grid.height)
+        self.robots = robots
         self.steps = 0
-        self.scale_x = 800 / gw
-        self.scale_y = 800 / gh
-        self.draw_heat_map()
-        self.robot_stamps1 = None
-        self.robot_stamps2 = None
+        self.scale_x = 800 / grid.width
+        self.scale_y = 800 / grid.height
+        self.ui = ui
+        self.asci = asci
+        self.robot_stamps = []
+        self.done = False
+        for index in range(len(self.robots)):
+            self.robot_stamps.append(None)
 
     def go(self):
-        print(self.grid)
-        print(self.r1_boundary)
-        print(self.r2_boundary)
-        x = self.robot.current_location[0]
-        y = self.robot.current_location[1]
-        self.heat_map.cells[x][y] = self.robot.measure()
-        x = self.robot2.current_location[0] + self.r2x
-        y = self.robot2.current_location[1] + self.r2y
-        self.heat_map.cells[x][y] = self.robot2.measure()
-        while not self.robot.done or not self.robot2.done:
-            self.robot.go()
-            self.robot2.go()
-            x = self.robot.current_location[0]
-            y = self.robot.current_location[1]
-            self.heat_map.cells[x][y] = self.robot.measure()
-            x = self.robot2.current_location[0] + self.r2x
-            y = self.robot2.current_location[1] + self.r2y
-            self.heat_map.cells[x][y] = self.robot2.measure()
-            if self.robot.bomb_found is True:
-                print('Robot 1 Found the Bomb, the City is Saved')
-                self.robot2.done = True
-            elif self.robot2.bomb_found is True:
-                print('Robot 2 Found the Bomb, the City is Saved')
-                self.robot.done = True
-            else:
-                print(self)
-                self.update_heat_map()
-            if self.steps % 3 == 0:
-                self.robot.share(self.robot2)
-                self.robot2.share(self.robot)
+        if self.asci is True:
+            print(self.grid)
+        if self.ui is True:
+            self.draw_heat_map()
+        while not self.done:
+            all_robots_done = True
+            for robot in self.robots:
+                x = robot.current_location[0]
+                y = robot.current_location[1]
+                self.heat_map.cells[x][y] = robot.measure()
+                robot.go()
+                if robot.bomb_found is True:
+                    if self.asci is True:
+                        print('Robot 1 Found the Bomb, the City is Saved')
+                    self.done = True
+                elif robot.done is False:
+                    all_robots_done = False
+                if self.ui is True:
+                        self.update_heat_map()
+                if self.steps % 3 == 0:
+                    robot.share(self.robots)
             self.steps += 1
-        print(self.robot.heat_map)
-        print(self.robot2.heat_map)
+            if self.asci is True:
+                print(self)
+            if all_robots_done is True:
+                self.done = True
+        if self.asci is True:
+            print(self)
+        return self.steps
 
     def draw_heat_map(self):
         hideturtle()
@@ -105,43 +95,39 @@ class RobotController:
                     elif self.heat_map.cells[x][y] == 10:
                         dot(self.scale_x/2,'#FF0000')
                     self.heat_map.drawn[x][y] = True
-                if self.robot.current_location[0] == x and self.robot.current_location[1] == y:
-                    if self.robot_stamps1 is not None:
-                        clearstamp(self.robot_stamps1)
-                    penup()
-                    setposition(x*int(self.scale_x) - 400, -y*int(self.scale_y)+400)
-                    pendown()
-                    color('green')
-                    self.robot_stamps1 = stamp()
-                if self.robot2.current_location[0] == x and self.robot2.current_location[1] == y:
-                    if self.robot_stamps2 is not None:
-                        clearstamp(self.robot_stamps2)
-                    penup()
-                    setposition(x*int(self.scale_x) - 400, -y*int(self.scale_y)+400)
-                    pendown()
-                    color('orange')
-                    self.robot_stamps2 = stamp()
+        for robot in self.robots:
+            if self.robot_stamps[robot.id] is not None:
+                clearstamp(self.robot_stamps[robot.id])
+            penup()
+            x = robot.current_location[0]
+            y = robot.current_location[1]
+            setposition(x*int(self.scale_x) - 400, -y*int(self.scale_y)+400)
+            pendown()
+            color('green')
+            self.robot_stamps[robot.id] = stamp()
 
 
     def __str__(self):
         grid_string = 'Heat Map: ' + str(self.steps) + ' steps\n'
-        grid_string += self.robot.__str__()
-        grid_string += self.robot2.__str__()
+        for robot in self.robots:
+            print(robot)
         for y in range(self.heat_map.height):
             for x in range(self.heat_map.width):
-                if x == self.robot.current_location[0] and y == self.robot.current_location[1]:
-                    grid_string += ' |' + 'R1' + '| '
-                elif x == self.robot2.current_location[0] + self.r2x and y == self.robot2.current_location[1]+self.r2y:
-                    grid_string += ' |' + 'R2' + '| '
-                elif self.heat_map.cells[x][y] > 0:
+                is_robot = False
+                for robot in self.robots:
+                    if is_robot is False and x == robot.current_location[0] and y ==robot.current_location[1]:
+                        is_robot = True
+                        grid_string += ' |' + 'R' + str(robot.id) + '| '
+
+                if not is_robot and self.heat_map.cells[x][y] > 0:
                     grid_string += ' |' + str("%2d" % self.heat_map.cells[x][y]) + '| '
-                else:
+                elif not is_robot:
                     grid_string += ' |' + '  ' + '| '
             grid_string += '\n'
         return grid_string
 
 
-
-c = RobotController(1, 16, 16, 0, 0)
-c.go()
-done()
+if __name__ == "__main__":
+    c = RobotController(1, 16, 16, 0, 0)
+    c.go()
+    done()
