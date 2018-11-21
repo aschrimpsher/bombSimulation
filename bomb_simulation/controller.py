@@ -49,12 +49,31 @@ class RobotController:
                     robot.share(self.robots)
             self.steps += 1
             if self.steps % 5 == 0:
-                k = Kriging(self.heat_map)
-                k.setup()
-                self.estimateX = int((self.robots[0].max_location[0] + self.robots[1].max_location[0]) / 2)
-                self.estimateY = int((self.robots[0].max_location[1] + self.robots[1].max_location[1]) / 2)
-                self.estimate = round(k.get_estimate(self.estimateX, self.estimateY), 1)
-                self.diff = abs(self.estimate - self.grid.cells[self.estimateX][self.estimateX])
+                if self.robots[0].max > 0 and self.robots[1].max > 0:
+                    k = Kriging(self.heat_map)
+                    k.setup()
+                    tempX= int((self.robots[0].max_location[0] + self.robots[1].max_location[0]) / 2)
+                    tempY = int((self.robots[0].max_location[1] + self.robots[1].max_location[1]) / 2)
+                    if self.estimateX == -1:
+                        self.estimateX = tempX
+                        self.estimateY = tempY
+                    tempEstimate1 = round(k.get_estimate(tempX, tempY), 1)
+                    tempEstimatePrevious = round(k.get_estimate(self.estimateX, self.estimateY), 1)
+                    if self.asci is True:
+                        print('Previous ', tempEstimatePrevious, ' New ', tempEstimate1)
+                    if tempEstimate1 > 11 or tempEstimate1 < 0:
+                        self.estimate = tempEstimatePrevious
+                    elif tempEstimatePrevious > 11 or tempEstimatePrevious < 0:
+                        self.estimate = tempEstimate1
+                        self.estimateX = tempX
+                        self.estimateY = tempY
+                    elif tempEstimate1 > tempEstimatePrevious:
+                        self.estimate = tempEstimate1
+                        self.estimateX = tempX
+                        self.estimateY = tempY
+                    else:
+                        self.estimate = tempEstimatePrevious
+                    self.diff = abs(self.estimate - self.grid.cells[self.estimateX][self.estimateY])
                 if self.asci is True:
                     print(self)
 
@@ -123,7 +142,10 @@ class RobotController:
     def __str__(self):
         grid_string = 'Heat Map: ' + str(self.steps) + ' steps\n'
         if self.estimateX != -1:
-            grid_string += 'Estimate Error = ' + str(self.diff) + ' (' + str(self.grid.cells[self.estimateX][self.estimateY]) + ')\n'
+            grid_string += 'Bomb Estimate ' + str("(%2d,%2d)" % (self.estimateX, self.estimateY))
+            grid_string += str(" *(%d, %d)" % (self.grid.bomb_location[0], self.grid.bomb_location[1])) + '\n'
+            grid_string += 'Estimate= ' + str("%.1f" % self.estimate) + str(" *%d" % self.grid.cells[self.estimateX][self.estimateY]) + '\n'
+            grid_string += 'Error= ' + str("%.1f" % self.diff) + '\n'
         for robot in self.robots:
             grid_string += robot.__str__()
         for y in range(self.heat_map.height):
@@ -132,14 +154,14 @@ class RobotController:
                 for robot in self.robots:
                     if is_robot is False and x == robot.current_location[0] and y ==robot.current_location[1]:
                         is_robot = True
-                        grid_string += ' |' + 'R' + str("%2d" % robot.id) + '| '
+                        grid_string += '[' + 'R' + str(robot.id) + ']'
 
-                if x is self.estimateX and y is self.estimateY:
-                    grid_string += ' |' + '*' + str("%2d" % self.estimate) + '| '
+                if not is_robot and x is self.estimateX and y is self.estimateY:
+                    grid_string += '[' + '**' + ']'
                 elif not is_robot and self.heat_map.cells[x][y] > 0:
-                    grid_string += ' |' + str("%3d" % self.heat_map.cells[x][y]) + '| '
+                    grid_string += '[' + str("%2d" % self.heat_map.cells[x][y]) + ']'
                 elif not is_robot:
-                    grid_string += ' |' + '   ' + '| '
+                    grid_string += '[' + '  ' + ']'
             grid_string += '\n'
         return grid_string
 

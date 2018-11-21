@@ -6,7 +6,7 @@ from bomb_simulation.grid import Grid
 class Kriging:
     def __init__(self, heat_map):
         self.nugget = 0
-        self.range = 10
+        self.range = 25
         self.sill = 12
         self.sv_matrix = None
         self.lag_matrix = None
@@ -52,7 +52,6 @@ class Kriging:
         self.ppsv = np.array([ppsv(h) for h in self.pp])
         self.ppsv = np.r_[self.ppsv, np.ones(1)]
 
-
     def calculate_weights(self):
         temp = np.linalg.inv(self.sv_matrix)
         self.weights = np.dot(temp, self.ppsv)
@@ -63,9 +62,9 @@ class Kriging:
         self.z_matrix = np.array([z(p) for p in self.points])
         self.pp_z = np.inner(self.weights, self.z_matrix)
         if self.pp_z > 10:
-            self.pp_z = 10
+            self.pp_z = 11
         elif self.pp_z < 0:
-            self.pp_z = 0
+            self.pp_z = -1
 
     def setup(self):
         self.get_points()
@@ -73,7 +72,7 @@ class Kriging:
         self.calculate_sv_matrix()
 
     def get_estimate(self, x, y):
-        self.calculate_prediction_point(15, 15)
+        self.calculate_prediction_point(x, y)
         self.calculate_sv_pp()
         self.calculate_weights()
         self.calculate_z()
@@ -82,7 +81,7 @@ class Kriging:
 
 if __name__ == "__main__":
     np.set_printoptions(linewidth=300, precision=3)
-    heat_map = Grid(100, 100)
+    heat_map = Grid(16, 16)
     heat_map.init_bomb(3, 3, 10)
     # heat_map.cells[10][0] = 5
     # heat_map.cells[7][1] = 6
@@ -95,63 +94,8 @@ if __name__ == "__main__":
     # heat_map.cells[10][9] = 7
 
     k = Kriging(heat_map)
-    k.get_points()
-    #print('Points')
-    #print(k.points)
-    k.calculate_lag_matrix()
-    print('Lag')
-    print(k.lag_matrix)
-    k.calculate_sv_matrix()
-    #print('SV')
-    #print(k.sv_matrix)
-    k.calculate_prediction_point(15,15)
-    #print('Prediction Lag')
-    #print(k.pp)
-    k.calculate_sv_pp()
-    #print('Prediction SV')
-    #print(k.ppsv)
-    k.calculate_weights()
-    #print('Weights')
-    #print(k.weights)
-    k.calculate_z()
-    #print('Z Matrix')
-    #print(k.z_matrix)
-    print('Estaimate for 15,15')
-    print(k.pp_z)
-    print(heat_map.cells[15][15])
-    #print(np.sum(k.weights))
-
-    k.calculate_prediction_point(3, 3)
-    #print('Prediction Lag')
-    #print(k.pp)
-    k.calculate_sv_pp()
-    #print('Prediction SV')
-    #print(k.ppsv)
-    k.calculate_weights()
-    #print('Weights')
-    #print(k.weights)
-    k.calculate_z()
-    #print('Z Matrix')
-    #print(k.z_matrix)
-    print('Estaimate for 3, 3')
-    print(k.pp_z)
-    print(heat_map.cells[3][3])
-    #print(np.sum(k.weights))
-
-
-    k.calculate_prediction_point(7,7)
-    #print('Prediction Lag')
-    #print(k.pp)
-    k.calculate_sv_pp()
-    #print('Prediction SV')
-    #print(k.ppsv)
-    k.calculate_weights()
-    #print('Weights')
-    #print(k.weights)
-    k.calculate_z()
-    #print('Z Matrix')
-    #print(k.z_matrix)
-    print('Estaimate for 7, 7')
-    print(k.pp_z)
-    print(heat_map.cells[7][7])
-    #print(np.sum(k.weights))
+    k.setup()
+    for x in range(heat_map.width):
+        for y in range(heat_map.height):
+            result = k.get_estimate(x, y)
+            print("Estimate for (%2d,%2d)" % (x, y), str("%.2f" % result), heat_map.cells[x][y])

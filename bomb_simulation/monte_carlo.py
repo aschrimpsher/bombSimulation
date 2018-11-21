@@ -4,13 +4,14 @@ from bomb_simulation.grid import Grid
 from bomb_simulation.robot import Robot
 from statistics import mean, stdev
 
+
 def main():
     seed()
     steps = []
     stepsSlow = []
-    for i in range(1000):
-        width = randrange(16, 100)
-        height = randrange(16, 100)
+    for i in range(1, 11):
+        width = i * 100
+        height = i * 100
         bomb_x = randrange(0, width)
         bomb_y = randrange(0, height)
         robots = []
@@ -20,8 +21,8 @@ def main():
             temp = Robot(i, grid, [0, int(i*height/2)], False)
             robots.append(temp)
         controller = RobotController(grid, robots, False, False)
-        temp = controller.go()
-        steps.append(temp)
+        tempFast = controller.go()
+        steps.append(tempFast)
 
         robotsSlow = []
         gridSlow = Grid(width, height)
@@ -32,6 +33,9 @@ def main():
         controllerSlow  = RobotController(gridSlow, robotsSlow, False, False)
         tempSlow  = controllerSlow .go()
         stepsSlow.append(tempSlow )
+        print(width, 'x', height, tempFast, 'vs', tempSlow, str("%.1f" % (tempSlow / tempFast)))
+        print(str("%.1f Steps Per Cell" % (tempFast/width)))
+        print(str("%.1f Steps Per Cell" % (tempSlow/width)))
 
     x_bar = mean(steps)
     sigma = stdev(steps, x_bar)

@@ -19,10 +19,10 @@ class Robot:
 
     def __str__(self):
         if not self.done:
-            grid_string = 'Robot ' + str(self.id) + ' ' + ' Active ' + '\n'
+            grid_string = 'Robot ' + str(self.id) + ' ' + ' Active '
         else:
-            grid_string = 'Robot ' + str(self.id) + ' ' + ' Idle ' + '\n'
-        grid_string += '(' + str(self.current_location[0]) + ',' + str(self.current_location[1]) + ')\n'
+            grid_string = 'Robot ' + str(self.id) + ' ' + ' Idle '
+        grid_string += str("(%2d,%2d)" % (self.current_location[0], self.current_location[1])) + ')\n'
         return grid_string
 
     def on_grid(self):
@@ -64,11 +64,14 @@ class Robot:
                     if self.current_location[1] - 2 < 0:
                         self.y_direction = 0
                         self.x_direction = 0
+                    elif self.x_direction != 0:
+                        self.y_direction = -2
+                        self.x_direction = 0
+                        self.row_direction = self.row_direction * -1
                     else:
                         self.y_direction = -2
                         self.x_direction = 0
                         self.row_direction = self.row_direction * 1
-                        #self.max = self.measure()
                 elif self.fast and self.measure() < self.last_reading:
                         if self.current_location[1] + 1 == self.grid.height:
                             self.done = True
