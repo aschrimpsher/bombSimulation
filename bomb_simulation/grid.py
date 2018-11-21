@@ -1,4 +1,5 @@
 from statistics import stdev, mean, variance
+from bomb_simulation.distance import euclidean_distance
 
 class Grid:
     def __init__(self, width, height):
@@ -70,9 +71,27 @@ class Grid:
             lag += 1
         print(self)
 
+    def semivariance_analog(self):
+        data = []
+        stupid = []
+        for y0 in range(self.height):
+            for x0 in range(self.width):
+                for x1 in range(self.width):
+                    for y1 in range(self.height):
+                        h = int(euclidean_distance(x0, y0, x1, y1)*1000)
+                        z = abs(self.cells[x0][y0] - self.cells[x1][y1])
+                        data.append(z)
+        print('Lag,', 'SV')
+        for row in data:
+            lag = row[0]
+            gamma = (1 / 2) * row[1]
+            print(lag, ',', gamma)
+
+
+
 
 if __name__ == "__main__":
     grid = Grid(32, 32)
-    grid.init_bomb(7, 7, 10)
-    grid.semivariance()
+    grid.init_bomb(15, 15, 10)
+    grid.semivariance_analog()
 

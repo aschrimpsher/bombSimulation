@@ -8,5 +8,5 @@ setup(
     license='',
     author='Ann Schrimpsher',
     author_email='',
-    description=''
+    description='', install_requires=['numpy']
 )

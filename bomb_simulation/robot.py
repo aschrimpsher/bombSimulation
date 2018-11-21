@@ -18,7 +18,10 @@ class Robot:
         self.y_direction = 0
 
     def __str__(self):
-        grid_string = 'Robot ' + str(self.id) + ' ' + str(self.done) + '\n'
+        if not self.done:
+            grid_string = 'Robot ' + str(self.id) + ' ' + ' Active ' + '\n'
+        else:
+            grid_string = 'Robot ' + str(self.id) + ' ' + ' Idle ' + '\n'
         grid_string += '(' + str(self.current_location[0]) + ',' + str(self.current_location[1]) + ')\n'
         return grid_string
 
@@ -47,7 +50,7 @@ class Robot:
 
     def go(self):
         if self.on_grid() and self.done is not True and self.bomb_found is not True:
-            if self.measure() > self.max:
+            if self.measure() >= self.max:
                 self.max = self.measure()
                 self.max_location[0] = self.current_location[0]
                 self.max_location[1] = self.current_location[1]
@@ -57,7 +60,7 @@ class Robot:
                 self.bomb_found = True
                 self.done = True
             else:
-                if self.fast and self.measure() - self.max <= -2:
+                if self.fast and self.measure() - self.max <= -2 and self.measure() < self.last_reading:
                     if self.current_location[1] - 2 < 0:
                         self.y_direction = 0
                         self.x_direction = 0
@@ -65,7 +68,7 @@ class Robot:
                         self.y_direction = -2
                         self.x_direction = 0
                         self.row_direction = self.row_direction * 1
-                        self.max = self.measure()
+                        #self.max = self.measure()
                 elif self.fast and self.measure() < self.last_reading:
                         if self.current_location[1] + 1 == self.grid.height:
                             self.done = True
