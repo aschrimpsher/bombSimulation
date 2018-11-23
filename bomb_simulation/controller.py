@@ -15,18 +15,32 @@ class RobotController:
         self.scale_x = 800 / grid.width
         self.scale_y = 800 / grid.height
         self.ui = ui
-        self.asci = asci
+        self.ascii = asci
         self.robot_stamps = []
         self.done = False
-        self.estimate = -1
-        self.estimateX = -1
-        self.estimateY = -1
+        self.estimates = []
         self.diff = 0
+        self.print_grid = True
         for index in range(len(self.robots)):
             self.robot_stamps.append(None)
 
+    def add_estimates(self, x, y):
+        found = False
+        for estimate in self.estimates:
+            if x == estimate[0] and y == estimate[1]:
+                found = True
+        if not found:
+            self.estimates.append([x, y, 0])
+
+    def clean_up_estimates(self, min):
+        temp = []
+        for estimate in self.estimates:
+            if estimate[2] > min:
+                temp.append(estimate)
+        self.estimates = temp
+
     def go(self):
-        if self.asci is True:
+        if self.ascii is True:
             print(self.grid)
         if self.ui is True:
             self.draw_heat_map()
@@ -38,7 +52,7 @@ class RobotController:
                 self.heat_map.cells[x][y] = robot.measure()
                 robot.go()
                 if robot.bomb_found is True:
-                    if self.asci is True:
+                    if self.ascii is True:
                         print('Robot 1 Found the Bomb, the City is Saved')
                     self.done = True
                 elif robot.done is False:
@@ -48,38 +62,25 @@ class RobotController:
                 if self.steps % 3 == 0:
                     robot.share(self.robots)
             self.steps += 1
-            if self.steps % 5 == 0:
-                if self.robots[0].max > 0 and self.robots[1].max > 0:
-                    k = Kriging(self.heat_map)
-                    k.setup()
-                    tempX= int((self.robots[0].max_location[0] + self.robots[1].max_location[0]) / 2)
-                    tempY = int((self.robots[0].max_location[1] + self.robots[1].max_location[1]) / 2)
-                    if self.estimateX == -1:
-                        self.estimateX = tempX
-                        self.estimateY = tempY
-                    tempEstimate1 = round(k.get_estimate(tempX, tempY), 1)
-                    tempEstimatePrevious = round(k.get_estimate(self.estimateX, self.estimateY), 1)
-                    if self.asci is True:
-                        print('Previous ', tempEstimatePrevious, ' New ', tempEstimate1)
-                    if tempEstimate1 > 11 or tempEstimate1 < 0:
-                        self.estimate = tempEstimatePrevious
-                    elif tempEstimatePrevious > 11 or tempEstimatePrevious < 0:
-                        self.estimate = tempEstimate1
-                        self.estimateX = tempX
-                        self.estimateY = tempY
-                    elif tempEstimate1 > tempEstimatePrevious:
-                        self.estimate = tempEstimate1
-                        self.estimateX = tempX
-                        self.estimateY = tempY
-                    else:
-                        self.estimate = tempEstimatePrevious
-                    self.diff = abs(self.estimate - self.grid.cells[self.estimateX][self.estimateY])
-                if self.asci is True:
+            if self.steps % 2 == 0:
+                for robot1 in self.robots:
+                    for robot2 in self.robots:
+                        if robot1.id is not robot2.id and robot1.max > 0 and robot2.max > 0:
+                            temp_x = int((robot1.max_location[0] + robot2.max_location[0]) / 2)
+                            temp_y = int((robot1.max_location[1] + robot2.max_location[1]) / 2)
+                            self.add_estimates(temp_x, temp_y)
+                k = Kriging(self.heat_map)
+                if k.setup() is True:
+                    for estimate in self.estimates:
+                        print("Checking (%d, %d)" % (estimate[0], estimate[1]))
+                        temp_estimate = k.get_estimate(estimate[0], estimate[1])
+                        estimate[2] = temp_estimate
+                    self.clean_up_estimates(1)
+                if self.ascii is True:
                     print(self)
-
             if all_robots_done is True:
                 self.done = True
-        if self.asci is True:
+        if self.ascii is True:
             print(self)
         return self.steps
 
@@ -141,28 +142,26 @@ class RobotController:
 
     def __str__(self):
         grid_string = 'Heat Map: ' + str(self.steps) + ' steps\n'
-        if self.estimateX != -1:
-            grid_string += 'Bomb Estimate ' + str("(%2d,%2d)" % (self.estimateX, self.estimateY))
+        for estimate in self.estimates:
+            grid_string += 'Bomb Estimate ' + str("(%2d,%2d)" % (estimate[0], estimate[1]))
             grid_string += str(" *(%d, %d)" % (self.grid.bomb_location[0], self.grid.bomb_location[1])) + '\n'
-            grid_string += 'Estimate= ' + str("%.1f" % self.estimate) + str(" *%d" % self.grid.cells[self.estimateX][self.estimateY]) + '\n'
-            grid_string += 'Error= ' + str("%.1f" % self.diff) + '\n'
+            grid_string += 'Estimate= ' + str("%.1f" % estimate[2]) + str(" *%d" % self.grid.cells[estimate[0]][estimate[1]]) + '\n'
+            grid_string += 'Error= ' + str("%.1f" % (estimate[2] - self.grid.cells[estimate[0]][estimate[1]])) + '\n'
         for robot in self.robots:
             grid_string += robot.__str__()
-        for y in range(self.heat_map.height):
-            for x in range(self.heat_map.width):
-                is_robot = False
-                for robot in self.robots:
-                    if is_robot is False and x == robot.current_location[0] and y ==robot.current_location[1]:
-                        is_robot = True
-                        grid_string += '[' + 'R' + str(robot.id) + ']'
-
-                if not is_robot and x is self.estimateX and y is self.estimateY:
-                    grid_string += '[' + '**' + ']'
-                elif not is_robot and self.heat_map.cells[x][y] > 0:
-                    grid_string += '[' + str("%2d" % self.heat_map.cells[x][y]) + ']'
-                elif not is_robot:
-                    grid_string += '[' + '  ' + ']'
-            grid_string += '\n'
+        if self.print_grid:
+            for y in range(self.heat_map.height):
+                for x in range(self.heat_map.width):
+                    is_robot = False
+                    for robot in self.robots:
+                        if is_robot is False and x == robot.current_location[0] and y ==robot.current_location[1]:
+                            is_robot = True
+                            grid_string += '[' + 'R' + str(robot.id) + ']'
+                    if not is_robot and self.heat_map.cells[x][y] > 0:
+                        grid_string += '[' + str("%2d" % self.heat_map.cells[x][y]) + ']'
+                    elif not is_robot:
+                        grid_string += '[' + '  ' + ']'
+                grid_string += '\n'
         return grid_string
 
 

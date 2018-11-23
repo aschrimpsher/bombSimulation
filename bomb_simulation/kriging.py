@@ -89,8 +89,14 @@ class Kriging:
 
     def setup(self):
         self.get_points()
-        self.calculate_lag_matrix()
-        self.calculate_sv_matrix()
+        if len(self.points) < 3:
+            print(len(self.points), 'is not enough points')
+            return False
+        else:
+            print(len(self.points), 'is enough points')
+            self.calculate_lag_matrix()
+            self.calculate_sv_matrix()
+            return True
 
     def get_estimate(self, x, y):
         self.calculate_prediction_point(x, y)

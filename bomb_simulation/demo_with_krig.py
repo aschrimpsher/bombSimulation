@@ -9,17 +9,18 @@ def main():
     steps = []
     stepsSlow = []
     for i in range(1):
-        width = 16
-        height = 16
-        bomb_x = 7
-        bomb_y = 7
+        width = randrange(32, 100)
+        height = randrange(32, 100)
+        bomb_x = randrange(0, width)
+        bomb_y = randrange(0, height)
         robots = []
         grid = Grid(width, height)
         grid.init_bomb(bomb_x, bomb_y, 10)
-        for i in range(0, 2):
-            temp = Robot(i, grid, [0, int(i*height/2)], False)
+        for i in range(0, 3):
+            temp = Robot(i, grid, [0, int(i*height/3)], False)
             robots.append(temp)
         controller = RobotController(grid, robots, False, True)
+        controller.print_grid = False
         temp = controller.go()
         steps.append(temp)
 
