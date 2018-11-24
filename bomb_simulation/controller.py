@@ -62,8 +62,35 @@ class RobotController:
                     self.estimate_generator.estimate()
                     self.estimate_generator.clean_up()
                     self.estimates = self.estimate_generator.target_guess()
-                else:
-                    print('No Estimate')
+                    if len(self.estimates) > 0 and len(self.estimates[0]) == 4:
+                        minx = self.grid.width
+                        miny = self.grid.height
+                        maxx = 0
+                        maxy = 0
+                        maxz = 0
+                        minerr = 1000
+                        bestZ = []
+                        bestE = []
+                        for estimate in self.estimates:
+                            if estimate[0] < minx:
+                                minx = estimate[0]
+                            if estimate[0] > maxx:
+                                maxx = estimate[0]
+                            if estimate[1] < miny:
+                                miny = estimate[1]
+                            if estimate[1] > maxy:
+                                maxy = estimate[1]
+                            if estimate[2] > maxz:
+                                maxz = estimate[2]
+                                bestZ = estimate
+                            if estimate[3] < minerr:
+                                minerr = estimate[3]
+                                bestE = estimate
+                        if bestZ == bestE and bestZ[2] > 8 and self.guess:
+                            for robot in self.robots:
+                                robot.manual_drive(bestZ[0], bestZ[1])
+                # else:
+                #     # print('No Estimate')
             if all_robots_done is True:
                 self.done = True
             if self.ascii is True:

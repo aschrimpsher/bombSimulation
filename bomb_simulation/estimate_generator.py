@@ -31,8 +31,8 @@ class EstimateGenerator:
 
     def get_points_to_predict(self):
         if self.valid:
-            for x in range(self.kriging.heat_map.height):
-                for y in range(self.kriging.heat_map.width):
+            for x in range(self.kriging.heat_map.width):
+                for y in range(self.kriging.heat_map.height):
                     if self.kriging.heat_map.cells[x][y] <= 0:
                         self.prediction_points.append([x, y])
 

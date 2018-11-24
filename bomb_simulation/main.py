@@ -1,6 +1,9 @@
 from bomb_simulation.controller import RobotController
 from bomb_simulation.robot import Robot
 from bomb_simulation.grid import Grid
+from random import randrange, seed
+from statistics import mean, stdev
+
 
 def single():
     choice = input('Brute Force (1) or Phylogenic(2): ')
@@ -67,28 +70,132 @@ def single_with_graphics():
     controller.go()
 
 def mc():
-    choice = input('Enter the Grid Width : ')
-    width = int(choice)
-    choice = input('Grid Height : ')
-    height = int(choice)
-    choice = input('Enter the Bomb Location in X: ')
-    bomb_x = int(choice)
-    choice = input('in Y: ')
-    bomb_y = int(choice)
+    #Vary Grid Size?
+    #Vary Bomb Location?
+    #Number of Robots
+
+
+    min_width = 0
+    min_height = 0
+    max_width = 0
+    max_height = 0
+    steps_bf = []
+    steps_bf_k= []
+    steps_ph = []
+    steps_ph_k = []
+    choice = input('Do you want to Vary Grid Size (Y/N): ')
+    if choice == 'Y' or choice == 'y':
+        choice = input('Minimum Grid Width : ')
+        min_width = int(choice)
+        choice = input('Maximum Grid Width : ')
+        max_width = int(choice)
+        choice = input('Minimum Grid Height : ')
+        min_height = int(choice)
+        choice = input('Maximum Grid Height : ')
+        max_height = int(choice)
+    else:
+        choice = input('Grid Width : ')
+        min_width = int(choice)
+        max_width = min_width + 1
+        choice = input('Grid Height : ')
+        min_height = int(choice)
+        max_height = min_height + 1
+
+    vary_bomb = False
+    bomb_x = 0
+    bomb_y = 0
+    choice = input('Do you want to Vary Bomb Location (Y/N): ')
+    if choice == 'Y' or choice == 'y':
+        vary_bomb = True
+    else:
+        vary_bomb = False
+        choice = input('Enter the Bomb Location in X: ')
+        bomb_x = int(choice)
+        choice = input('in Y: ')
+        bomb_y = int(choice)
+
+
     choice = input('Enter the number of robots: ')
     num_robots = int(choice)
     robots = []
 
-    grid = Grid(width, height)
-    grid.init_bomb(bomb_x, bomb_y, 10)
+    choice = input('Number of Iterations: ')
+    iterations = int(choice)
 
-    for i in range(0, num_robots):
-        temp = Robot(i, grid, [0, int(i * height / num_robots)], False)
-        robots.append(temp)
+    seed()
+    for i in range(iterations):
+        width = randrange(min_width, max_width)
+        height = randrange(min_height, max_height)
+        if vary_bomb:
+            bomb_x = randrange(0, width)
+            bomb_y = randrange(0, height)
+        grid = Grid(width, height)
+        grid.init_bomb(bomb_x, bomb_y, 10)
 
-    controller = RobotController(grid, robots, False, False)
-    controller.print_grid = False
-    controller.go()
+        robots_bf = []
+        for i in range(0, num_robots):
+            temp = Robot(i, grid, [0, int(i*height/num_robots)], True)
+            robots_bf.append(temp)
+        controller = RobotController(grid, robots_bf, False, False, False)
+        temp = controller.go()
+        steps_bf.append(temp)
+
+        robots_bf_k = []
+        for i in range(0, num_robots):
+            temp = Robot(i, grid, [0, int(i * height / num_robots)], True)
+            robots_bf_k.append(temp)
+        controller = RobotController(grid, robots_bf_k, False, False, True)
+        temp = controller.go()
+        steps_bf_k.append(temp)
+
+        robots_ph = []
+        for i in range(0, num_robots):
+            temp = Robot(i, grid, [0, int(i * height / num_robots)], False)
+            robots_ph.append(temp)
+        controller = RobotController(grid, robots_ph, False, False, False)
+        temp = controller.go()
+        steps_ph.append(temp)
+
+        robots_ph_k = []
+        for i in range(0, num_robots):
+            temp = Robot(i, grid, [0, int(i * height / num_robots)], False)
+            robots_ph_k.append(temp)
+        controller = RobotController(grid, robots_ph_k, False, False, True)
+        temp = controller.go()
+        steps_ph_k.append(temp)
+
+    x_bar_bf = mean(steps_bf)
+    sigma_bf = stdev(steps_bf, x_bar_bf)
+    print()
+    print('Brute Force')
+    print('----------------------')
+    print('Mean Steps: ', x_bar_bf)
+    print('Std Dev Steps: ', sigma_bf)
+    
+    x_bar_bf_k = mean(steps_bf_k)
+    sigma_bf_k = stdev(steps_bf_k, x_bar_bf_k)
+    print()
+    print('Brute Force + Kriging')
+    print('----------------------')
+    print('Mean Steps: ', x_bar_bf_k)
+    print('Std Dev Steps: ', sigma_bf_k)
+
+    x_bar_ph = mean(steps_ph)
+    sigma_ph = stdev(steps_ph, x_bar_ph)
+    print()
+    print('Phylogenetic')
+    print('----------------------')
+    print('Mean Steps: ', x_bar_ph)
+    print('Std Dev Steps: ', sigma_ph)
+
+    x_bar_ph_k = mean(steps_ph_k)
+    sigma_ph_k = stdev(steps_ph_k, x_bar_ph_k)
+    print()
+    print('Phylogenetic + Kriging')
+    print('----------------------')
+    print('Mean Steps: ', x_bar_ph_k)
+    print('Std Dev Steps: ', sigma_ph_k)
+
 
 def main():
     ## Show menu ##
