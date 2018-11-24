@@ -48,6 +48,9 @@ class Robot:
     def add_max_to_heat_map(self, other_max, max_location):
         self.heat_map.cells[max_location[0]][max_location[1]] = other_max
 
+    def manual_drive(self, x, y):
+        self.current_location = [x, y]
+
     def go(self):
         if self.on_grid() and self.done is not True and self.bomb_found is not True:
             if self.measure() >= self.max:

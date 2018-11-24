@@ -9,8 +9,8 @@ def main():
     steps = []
     stepsSlow = []
     for i in range(1):
-        width = randrange(32, 100)
-        height = randrange(32, 100)
+        width = randrange(33, 33+1)
+        height = randrange(33, 33+1)
         bomb_x = randrange(0, width)
         bomb_y = randrange(0, height)
         robots = []

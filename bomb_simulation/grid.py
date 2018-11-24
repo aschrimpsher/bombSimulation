@@ -9,7 +9,7 @@ class Grid:
         self.cells = [[0 for i in range(self.height)] for j in range(self.width)]
         self.drawn = [[False for i in range(self.height)] for j in range(self.width)]
 
-    def init_bomb(self, x, y, strength):
+    def init_bomb(self, x, y, strength=10):
         self.bomb_location = [x, y]
         current_strength = strength
         offset = 0
