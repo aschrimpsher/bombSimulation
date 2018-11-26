@@ -88,8 +88,9 @@ class Kriging:
             self.weights = np.delete(self.weights, -1, 0)
             self.weights = np.delete(self.weights, -1, 0)
             return True
-        except np.linalg.linalg.LinAlgError as err:
+        except Exception as err:
             print("Error")
+            print(err)
             return False
 
     def calculate_z(self):

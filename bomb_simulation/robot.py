@@ -32,7 +32,6 @@ class Robot:
             self.done = True
             return False
 
-
     def measure(self):
         if self.on_grid():
             return self.grid.cells[self.current_location[0]][self.current_location[1]]
