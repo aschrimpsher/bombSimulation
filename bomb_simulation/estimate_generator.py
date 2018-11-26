@@ -75,7 +75,6 @@ class EstimateGenerator:
         self.update_heat_map(new_heat_map)
         if self.is_valid():
             self.get_points_to_predict(robots)
-            # self.add_estimates(self.bomb_location[0], self.bomb_location[1])
             self.estimate_points()
             self.clean_up()
             if len(self.prediction_points) > 0 and len(self.prediction_points[0]) == 4:
@@ -88,10 +87,10 @@ class EstimateGenerator:
                 best_z = []
                 best_e = []
                 for estimate in self.prediction_points:
-                    if estimate[0] == self.bomb_location[0] and estimate[1] == self.bomb_location[1]:
-                        estimate_string = 'Bomb Estimate ' + str("(%2d,%2d)" % (estimate[0], estimate[1]))
-                        estimate_string += 'Estimate= ' + str("%.1f %.1f" % (estimate[2], estimate[3]))
-                        print(estimate_string)
+                    # if estimate[0] == self.bomb_location[0] and estimate[1] == self.bomb_location[1]:
+                    #     estimate_string = 'Bomb Estimate ' + str("(%2d,%2d)" % (estimate[0], estimate[1]))
+                    #     estimate_string += 'Estimate= ' + str("%.1f %.1f" % (estimate[2], estimate[3]))
+                    #     print(estimate_string)
                     if estimate[0] < min_x:
                         min_x = estimate[0]
                     if estimate[0] > max_x:
