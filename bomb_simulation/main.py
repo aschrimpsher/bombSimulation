@@ -161,8 +161,8 @@ def mc():
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
         header = ['Algorithm', 'Kriging', 'Grid Width', 'Grid Height',
                   'Bomb X Location', 'Bomb Y Location', 'Number of Robots',
-                  'Steps', 'Best Bomb Guess X', 'Best Bomb Guess Y', 'Guess at Step',
-                  'Last Bomb Guess X', 'Last Bomb Guess Y',]
+                  'Steps', 'Best Bomb Guess X', 'Best Bomb Guess Y',
+                  'Guess at Step', 'Last Bomb Guess X', 'Last Bomb Guess Y']
         csvwriter.writerow(header)
         seed()
         for iteration in range(iterations):
@@ -181,7 +181,8 @@ def mc():
                 if i % 2 == 1:
                     starting_x = width - 1
                     direction = -1
-                temp = Robot(i, grid, [starting_x, int(i * height / num_robots)], True)
+                temp = Robot(i, grid,
+                             [starting_x, int(i * height / num_robots)], True)
                 temp.row_direction = direction
                 temp.x_direction = direction
                 robots_bf.append(temp)
@@ -189,7 +190,8 @@ def mc():
             temp = controller.go()
             steps_bf.append(temp[0])
             print('BF Iteration', iteration)
-            list = ['BF', 'No', width, height, bomb_x, bomb_y, num_robots, temp[0], '', '', '', '', '']
+            list = ['BF', 'No', width, height, bomb_x, bomb_y, num_robots,
+                    temp[0], '', '', '', '', '']
             csvwriter.writerow(list)
 
             robots_bf_k = []
@@ -199,7 +201,8 @@ def mc():
                 if i % 2 == 1:
                     starting_x = width - 1
                     direction = -1
-                temp = Robot(i, grid, [starting_x, int(i * height / num_robots)], True)
+                temp = Robot(i, grid,
+                             [starting_x, int(i * height / num_robots)], True)
                 temp.row_direction = direction
                 temp.x_direction = direction
                 robots_bf_k.append(temp)
@@ -209,10 +212,12 @@ def mc():
             print('BFK Iteration', iteration)
             list = []
             if len(temp[1]) > 0:
-                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y, num_robots, temp[0], temp[1][0], temp[1][1],
+                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y,
+                        num_robots, temp[0], temp[1][0], temp[1][1],
                         temp[1][4], temp[2][0], temp[2][1]]
             else:
-                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y, num_robots, temp[0], '', '', '', '', '']
+                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y,
+                        num_robots, temp[0], '', '', '', '', '']
             csvwriter.writerow(list)
 
             robots_ph = []
@@ -222,7 +227,8 @@ def mc():
                 if i % 2 == 1:
                     starting_x = width - 1
                     direction = -1
-                temp = Robot(i, grid, [starting_x, int(i * height / num_robots)], False)
+                temp = Robot(i, grid,
+                             [starting_x, int(i * height / num_robots)], False)
                 temp.row_direction = direction
                 temp.x_direction = direction
                 robots_ph.append(temp)
@@ -230,7 +236,8 @@ def mc():
             temp = controller.go()
             steps_ph.append(temp[0])
             print('PH Iteration', iteration)
-            list = ['PH', 'No', width, height, bomb_x, bomb_y, num_robots, temp[0], '', '', '', '', '']
+            list = ['PH', 'No', width, height, bomb_x, bomb_y,
+                    num_robots, temp[0], '', '', '', '', '']
             csvwriter.writerow(list)
 
             robots_ph_k = []
@@ -240,7 +247,8 @@ def mc():
                 if i % 2 == 1:
                     starting_x = width - 1
                     direction = -1
-                temp = Robot(i, grid, [starting_x, int(i * height / num_robots)], False)
+                temp = Robot(i, grid,
+                             [starting_x, int(i * height / num_robots)], False)
                 temp.row_direction = direction
                 temp.x_direction = direction
                 robots_ph_k.append(temp)
@@ -250,10 +258,12 @@ def mc():
             print('PHK Iteration', iteration)
             list = []
             if len(temp[1]) > 0:
-                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y, num_robots, temp[0], temp[1][0], temp[1][1],
+                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y,
+                        num_robots, temp[0], temp[1][0], temp[1][1],
                         temp[1][4], temp[2][0], temp[2][1]]
             else:
-                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y, num_robots, temp[0], '', '', '', '', '']
+                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y,
+                        num_robots, temp[0], '', '', '', '', '']
             csvwriter.writerow(list)
 
     x_bar_bf = mean(steps_bf)
@@ -351,14 +361,13 @@ def mc_no_kriging():
         csvwriter = csv.writer(csvfile, delimiter=',',
                                quotechar='|', quoting=csv.QUOTE_MINIMAL)
         header = ['Algorithm', 'Kriging', 'Grid Width', 'Grid Height',
-                  'Bomb X Location', 'Bomb Y Location', 'Number of Robots', 'Steps']
+                  'Bomb X Location', 'Bomb Y Location', 'Number of Robots',
+                  'Steps']
         csvwriter.writerow(header)
         seed()
         for iteration in range(iterations):
             width = randrange(min_width, max_width)
             height = randrange(min_height, max_height)
-            # width = min_width + iteration
-            # height = min_width + iteration
             if vary_bomb:
                 bomb_x = randrange(0, width)
                 bomb_y = randrange(0, height)

@@ -8,23 +8,31 @@ class EstimateGenerator:
         self.bomb_location = bomb_location
         self.kriging = Kriging(heat_map)
         self.prediction_points = []
-        self.min = 7
-        self.error_limit = 20
+        self.min = 8
+        self.error_limit = 50
         self.hard_error_limit = 10
+        self.bomb_estimate_min = 8
         self.valid = True
         self.all = True
         self.prediction_grid = []
         self.best_z = []
         self.last_z = []
         self.print_all_estimates = False
+        self.bomb_flag = False
 
     def is_valid(self):
         return self.valid
+
+    def found_bomb(self):
+        return self.bomb_flag
 
     def update_heat_map(self, new_heat_map):
         self.heat_map = new_heat_map
         self.kriging = Kriging(new_heat_map)
         self.prediction_points = []
+        if len(self.best_z) >= 2 and \
+                self.heat_map.cells[self.best_z[0]][self.best_z[1]] > 0:
+            self.best_z = []
         if self.kriging.setup():
             self.valid = True
         else:
@@ -43,7 +51,8 @@ class EstimateGenerator:
             if len(self.prediction_grid) > 0:
                 for y in range(self.prediction_grid[0][1], self.prediction_grid[1][1]+1):
                     for x in range(self.prediction_grid[0][0], self.prediction_grid[1][0]+1):
-                        self.add_estimates(x, y)
+                        if self.kriging.heat_map.cells[x][y] <= 0:
+                            self.add_estimates(x, y)
             elif self.all:
                 for y in range(self.kriging.heat_map.height):
                     for x in range(self.kriging.heat_map.width):
@@ -67,7 +76,9 @@ class EstimateGenerator:
         if self.valid:
             temp = []
             for points in self.prediction_points:
-                if len(points) == 4 and points[2] > self.min and abs(points[3]) < self.error_limit:
+                if len(points) == 4 and points[2] > self.min and \
+                        abs(points[3]) < self.error_limit and \
+                        points[3] is not 0.0:
                     temp.append(points)
             self.prediction_points = temp
 
@@ -87,10 +98,6 @@ class EstimateGenerator:
                 best_z = []
                 best_e = []
                 for estimate in self.prediction_points:
-                    # if estimate[0] == self.bomb_location[0] and estimate[1] == self.bomb_location[1]:
-                    #     estimate_string = 'Bomb Estimate ' + str("(%2d,%2d)" % (estimate[0], estimate[1]))
-                    #     estimate_string += 'Estimate= ' + str("%.1f %.1f" % (estimate[2], estimate[3]))
-                    #     print(estimate_string)
                     if estimate[0] < min_x:
                         min_x = estimate[0]
                     if estimate[0] > max_x:
@@ -105,19 +112,27 @@ class EstimateGenerator:
                     if estimate[3] < min_err:
                         min_err = estimate[3]
                         best_e = estimate
+                    if len(self.best_z) > 2 and \
+                            estimate[0] == self.best_z[0] and \
+                            estimate[1] == self.best_z[1]:
+                        temp = self.best_z[4]
+                        self.best_z = estimate
+                        self.best_z.append(temp)
                 if len(best_z) == 4 and best_z[2] >= self.min:
                     self.last_z = best_z
                     if len(self.best_z) == 0:
                         self.best_z = best_z
                         self.best_z.append(step)
-                    elif euclidean_distance(self.bomb_location[0],
-                                            self.bomb_location[1],
-                                            best_z[0], best_z[1]) \
-                            < euclidean_distance(self.bomb_location[0],
-                                                 self.bomb_location[1],
-                                                 self.best_z[0], self.best_z[1]):
+                    elif best_z[0] == self.best_z[0] and \
+                            best_z[1] == self.best_z[1]:
                         self.best_z = best_z
                         self.best_z.append(step)
+                    elif best_z[2] >= self.best_z[2]:
+                        self.best_z = best_z
+                        self.best_z.append(step)
+                    if self.best_z[2] > self.bomb_estimate_min and \
+                            self.best_z[3] < self.hard_error_limit:
+                        self.bomb_flag = True
                 if max_x > 0 or max_y > 0:
                     self.prediction_grid = [[min_x, min_y], [max_x, max_y]]
 

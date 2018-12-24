@@ -16,9 +16,15 @@ class Robot:
         self.row_direction = 1
         self.x_direction = 1
         self.y_direction = 0
+        self.manual_driving = False
+        self.goal = [0, 0]
 
     def __str__(self):
-        if not self.done:
+        if self.manual_driving:
+            grid_string = 'Robot ' + str(self.id) + ' ' + ' Manual Driving '
+            grid_string += str("(%2d,%2d)" % (
+            self.x_direction, self.y_direction)) + ')\n'
+        elif not self.done:
             grid_string = 'Robot ' + str(self.id) + ' ' + ' Active '
         else:
             grid_string = 'Robot ' + str(self.id) + ' ' + ' Idle '
@@ -48,7 +54,10 @@ class Robot:
         self.heat_map.cells[max_location[0]][max_location[1]] = other_max
 
     def manual_drive(self, x, y):
-        self.current_location = [x, y]
+        if self.goal[0] != x or self.goal[1] != y:
+            self.manual_driving = True
+            self.goal[0] = x
+            self.goal[1] = y
 
     def go(self):
         if self.on_grid() and self.done is not True and self.bomb_found is not True:
@@ -62,7 +71,19 @@ class Robot:
                 self.bomb_found = True
                 self.done = True
             else:
-                if self.fast and self.measure() - self.max <= -2 and self.measure() < self.last_reading:
+                if self.manual_driving:
+                    deltaX = self.goal[0] - self.current_location[0]
+                    deltaY = self.goal[1] - self.current_location[1]
+                    if deltaX is not 0:
+                        self.x_direction = int(deltaX / abs(deltaX))
+                    else:
+                        self.x_direction = 0
+                    if deltaY is not 0:
+                        self.y_direction = int(deltaY / abs(deltaY))
+                    else:
+                        self.y_direction = 0
+                elif self.fast and self.measure() - self.max <= -2 and \
+                        self.measure() < self.last_reading:
                     if self.current_location[1] - 2 < 0:
                         self.y_direction = 0
                         self.x_direction = 0
@@ -106,8 +127,16 @@ class Robot:
                     self.current_location[0] + self.x_direction == self.grid.width:
                     self.x_direction = -1 * self.x_direction
 
+                print(str(self.id) + ":" + str(self.x_direction) + "," + str(
+                    self.y_direction))
                 self.current_location[0] += self.x_direction
                 self.current_location[1] += self.y_direction
-
-
+                if self.manual_driving and \
+                        self.current_location[0] == self.goal[0] and \
+                        self.current_location[1] == self.goal[1]:
+                    self.manual_driving = False
+                    self.y_direction = 0
+                    self.x_direction = self.row_direction
+                    print('Switching back to self driving')
+                    print(self.x_direction)
 

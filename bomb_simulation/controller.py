@@ -32,6 +32,9 @@ class RobotController:
             x = robot.current_location[0]
             y = robot.current_location[1]
             self.heat_map.cells[x][y] = robot.measure()
+            if self.estimate_generator.found_bomb():
+                robot.manual_drive(self.estimate_generator.last_z[0],
+                                   self.estimate_generator.last_z[1])
             robot.go()
             if robot.bomb_found is True:
                 if self.ascii is True:
