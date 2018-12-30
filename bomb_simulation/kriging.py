@@ -27,7 +27,7 @@ class Kriging:
     def get_points(self):
         for y0 in range(self.heat_map.height):
             for x0 in range(self.heat_map.width):
-                if self.heat_map.cells[x0][y0] > 0:
+                if self.heat_map.cells[x0][y0] >= 1:
                     self.points.append([x0, y0])
 
     def calculate_lag_matrix(self):

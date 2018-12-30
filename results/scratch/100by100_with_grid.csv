@@ -1,0 +1,9 @@
+Algorithm,Kriging,Grid Width,Grid Height,Bomb X Location,Bomb Y Location,Number of Robots,Steps,Finish,Best Bomb Guess X,Best Bomb Guess Y,Guess at Step,Last Bomb Guess X,Last Bomb Guess Y
+BF,No,100,100,29,87,4,1271,True,,,,,
+BF,Yes,100,100,29,87,4,1076,True,29,87,1074,29,87
+PH,No,100,100,29,87,4,447,True,,,,,
+PH,Yes,100,100,29,87,4,419,True,29,88,417,29,88
+BF,No,100,100,47,35,4,1053,True,,,,,
+BF,Yes,100,100,47,35,4,858,True,47,35,856,47,35
+PH,No,100,100,47,35,4,265,True,,,,,
+PH,Yes,100,100,47,35,4,238,True,47,36,236,47,36

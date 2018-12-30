@@ -1,0 +1,5 @@
+Algorithm,Kriging,Grid Width,Grid Height,Bomb X Location,Bomb Y Location,Number of Robots,Steps
+BF,No,100,100,98,78,2,|[2899, [], []]|
+PH,No,100,100,98,78,2,|[1979, [], []]|
+BF,No,100,100,92,5,2,|[508, [], []]|
+PH,No,100,100,92,5,2,|[138, [], []]|

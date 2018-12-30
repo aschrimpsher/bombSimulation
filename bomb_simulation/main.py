@@ -1,6 +1,7 @@
 from bomb_simulation.controller import RobotController
 from bomb_simulation.robot import Robot
 from bomb_simulation.grid import Grid
+from bomb_simulation.em_grid import EmGrid
 from random import randrange, seed
 from statistics import mean, stdev
 import csv
@@ -38,8 +39,13 @@ def single():
         print_grid = True
     robots = []
 
+    choice = input('EM Grid 1 Yes 2 No: ')
+    temp = int(choice)
     grid = Grid(width, height)
+    if temp == 1:
+        grid = EmGrid(width, height)
     grid.init_bomb(bomb_x, bomb_y, 10)
+    print(grid)
 
     for i in range(0, num_robots):
         starting_x = 0
@@ -151,17 +157,17 @@ def mc():
     choice = input('Number of Iterations: ')
     iterations = int(choice)
 
-    choice = input('File To Save Results (default is results.csv): ')
-    filename = choice
-    if filename == '':
-        filename = 'results.csv'
+    filename = str(min_width) + 'by' + str(min_height) + '.csv'
+    choice = input('File To Save Results (default is ' + filename + '): ')
+    if choice is not '':
+        filename = choice
 
     with open(filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=',',
                                 quotechar='|', quoting=csv.QUOTE_MINIMAL)
         header = ['Algorithm', 'Kriging', 'Grid Width', 'Grid Height',
                   'Bomb X Location', 'Bomb Y Location', 'Number of Robots',
-                  'Steps', 'Best Bomb Guess X', 'Best Bomb Guess Y',
+                  'Steps', 'Finish', 'Best Bomb Guess X', 'Best Bomb Guess Y',
                   'Guess at Step', 'Last Bomb Guess X', 'Last Bomb Guess Y']
         csvwriter.writerow(header)
         seed()
@@ -173,6 +179,7 @@ def mc():
                 bomb_y = randrange(0, height)
             grid = Grid(width, height)
             grid.init_bomb(bomb_x, bomb_y, 10)
+            print('Bomb at', bomb_x, bomb_y)
 
             robots_bf = []
             for i in range(0, num_robots):
@@ -190,8 +197,27 @@ def mc():
             temp = controller.go()
             steps_bf.append(temp[0])
             print('BF Iteration', iteration)
-            list = ['BF', 'No', width, height, bomb_x, bomb_y, num_robots,
-                    temp[0], '', '', '', '', '']
+            name = 'BF'
+            kriging = 'No'
+            steps = temp[0]
+            finished = temp[1]
+            if len(temp[2]) >= 5:
+                best_bomb_guess_x = temp[2][0]
+                best_bomb_guess_y = temp[2][1]
+                guess_at_step = temp[2][4]
+            else:
+                best_bomb_guess_x = ''
+                best_bomb_guess_y = ''
+                guess_at_step = ''
+            if len(temp[3]) >= 2:
+                last_bomb_guess_x = temp[3][0]
+                last_bomb_guess_y = temp[3][1]
+            else:
+                last_bomb_guess_x = ''
+                last_bomb_guess_y = ''
+            list = [name, kriging, width, height, bomb_x, bomb_y, num_robots,
+                    steps, finished, best_bomb_guess_x, best_bomb_guess_y,
+                    guess_at_step, last_bomb_guess_x, last_bomb_guess_y]
             csvwriter.writerow(list)
 
             robots_bf_k = []
@@ -210,14 +236,28 @@ def mc():
             temp = controller.go()
             steps_bf_k.append(temp[0])
             print('BFK Iteration', iteration)
-            list = []
-            if len(temp[1]) > 0:
-                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y,
-                        num_robots, temp[0], temp[1][0], temp[1][1],
-                        temp[1][4], temp[2][0], temp[2][1]]
+            name = 'BF'
+            kriging = 'Yes'
+            steps = temp[0]
+            finished = temp[1]
+            if len(temp[2]) >= 5:
+                best_bomb_guess_x = temp[2][0]
+                best_bomb_guess_y = temp[2][1]
+                guess_at_step = temp[2][4]
             else:
-                list = ['BFK', 'Yes', width, height, bomb_x, bomb_y,
-                        num_robots, temp[0], '', '', '', '', '']
+                best_bomb_guess_x = ''
+                best_bomb_guess_y = ''
+                guess_at_step = ''
+            if len(temp[3]) >= 2:
+                last_bomb_guess_x = temp[3][0]
+                last_bomb_guess_y = temp[3][1]
+            else:
+                last_bomb_guess_x = ''
+                last_bomb_guess_y = ''
+            list = [name, kriging, width, height, bomb_x, bomb_y, num_robots,
+                    steps, finished, best_bomb_guess_x, best_bomb_guess_y,
+                    guess_at_step, last_bomb_guess_x, last_bomb_guess_y]
+
             csvwriter.writerow(list)
 
             robots_ph = []
@@ -236,8 +276,27 @@ def mc():
             temp = controller.go()
             steps_ph.append(temp[0])
             print('PH Iteration', iteration)
-            list = ['PH', 'No', width, height, bomb_x, bomb_y,
-                    num_robots, temp[0], '', '', '', '', '']
+            name = 'PH'
+            kriging = 'No'
+            steps = temp[0]
+            finished = temp[1]
+            if len(temp[2]) >= 5:
+                best_bomb_guess_x = temp[2][0]
+                best_bomb_guess_y = temp[2][1]
+                guess_at_step = temp[2][4]
+            else:
+                best_bomb_guess_x = ''
+                best_bomb_guess_y = ''
+                guess_at_step = ''
+            if len(temp[3]) >= 2:
+                last_bomb_guess_x = temp[3][0]
+                last_bomb_guess_y = temp[3][1]
+            else:
+                last_bomb_guess_x = ''
+                last_bomb_guess_y = ''
+            list = [name, kriging, width, height, bomb_x, bomb_y, num_robots,
+                    steps, finished, best_bomb_guess_x, best_bomb_guess_y,
+                    guess_at_step, last_bomb_guess_x, last_bomb_guess_y]
             csvwriter.writerow(list)
 
             robots_ph_k = []
@@ -256,14 +315,27 @@ def mc():
             temp = controller.go()
             steps_ph_k.append(temp[0])
             print('PHK Iteration', iteration)
-            list = []
-            if len(temp[1]) > 0:
-                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y,
-                        num_robots, temp[0], temp[1][0], temp[1][1],
-                        temp[1][4], temp[2][0], temp[2][1]]
+            name = 'PH'
+            kriging = 'Yes'
+            steps = temp[0]
+            finished = temp[1]
+            if len(temp[2]) >= 5:
+                best_bomb_guess_x = temp[2][0]
+                best_bomb_guess_y = temp[2][1]
+                guess_at_step = temp[2][4]
             else:
-                list = ['PHK', 'Yes', width, height, bomb_x, bomb_y,
-                        num_robots, temp[0], '', '', '', '', '']
+                best_bomb_guess_x = ''
+                best_bomb_guess_y = ''
+                guess_at_step = ''
+            if len(temp[3]) >= 2:
+                last_bomb_guess_x = temp[3][0]
+                last_bomb_guess_y = temp[3][1]
+            else:
+                last_bomb_guess_x = ''
+                last_bomb_guess_y = ''
+            list = [name, kriging, width, height, bomb_x, bomb_y, num_robots,
+                    steps, finished, best_bomb_guess_x, best_bomb_guess_y,
+                    guess_at_step, last_bomb_guess_x, last_bomb_guess_y]
             csvwriter.writerow(list)
 
     x_bar_bf = mean(steps_bf)
@@ -352,10 +424,10 @@ def mc_no_kriging():
     choice = input('Number of Iterations: ')
     iterations = int(choice)
 
-    choice = input('File To Save Results (default is results.csv): ')
+    choice = input('File To Save Results (default is 100by100.csv): ')
     filename = choice
     if filename == '':
-        filename = 'results.csv'
+        filename = '100by100.csv'
 
     with open(filename, 'w', newline='') as csvfile:
         csvwriter = csv.writer(csvfile, delimiter=',',

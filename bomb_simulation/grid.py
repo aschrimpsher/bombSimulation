@@ -39,7 +39,7 @@ class Grid:
         for y in range(self.height):
             for x in range(self.width):
                 if self.cells[x][y] > 0:
-                    grid_string += '[' + str("%2d" % self.cells[x][y]) + ']'
+                    grid_string += '[' + str("%2.1f" % self.cells[x][y]) + ']'
                 else:
                     grid_string += '[' + '  ' + ']'
             grid_string += '\n'

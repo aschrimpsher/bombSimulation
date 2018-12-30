@@ -40,7 +40,11 @@ class Robot:
 
     def measure(self):
         if self.on_grid():
-            return self.grid.cells[self.current_location[0]][self.current_location[1]]
+            result = self.grid.cells[self.current_location[0]]\
+                [self.current_location[1]]
+            if result == 0:
+                result = 0.0001
+            return result
         else:
             print('Robot ', self.id, 'is off the grid', self.current_location[0], ',', self.current_location[1])
             return 0;
@@ -127,8 +131,6 @@ class Robot:
                     self.current_location[0] + self.x_direction == self.grid.width:
                     self.x_direction = -1 * self.x_direction
 
-                print(str(self.id) + ":" + str(self.x_direction) + "," + str(
-                    self.y_direction))
                 self.current_location[0] += self.x_direction
                 self.current_location[1] += self.y_direction
                 if self.manual_driving and \
@@ -137,6 +139,5 @@ class Robot:
                     self.manual_driving = False
                     self.y_direction = 0
                     self.x_direction = self.row_direction
-                    print('Switching back to self driving')
-                    print(self.x_direction)
+                    self.max = 0
 
