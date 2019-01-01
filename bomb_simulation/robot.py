@@ -6,7 +6,6 @@ class Robot:
         self.grid = grid
         self.starting_point = starting_point
         self.current_location = starting_point
-        self.heat_map = Grid(grid.width, grid.height)
         self.done = False
         self.bomb_found = False
         self.last_reading = 0
@@ -55,7 +54,8 @@ class Robot:
                 robot.add_max_to_heat_map(self.max, self.max_location)
 
     def add_max_to_heat_map(self, other_max, max_location):
-        self.heat_map.cells[max_location[0]][max_location[1]] = other_max
+        # self.heat_map.cells[max_location[0]][max_location[1]] = other_max
+        pass
 
     def manual_drive(self, x, y):
         if self.goal[0] != x or self.goal[1] != y:
@@ -69,7 +69,7 @@ class Robot:
                 self.max = self.measure()
                 self.max_location[0] = self.current_location[0]
                 self.max_location[1] = self.current_location[1]
-                self.heat_map.cells[self.max_location[0]][self.max_location[1]] = self.max
+                # self.heat_map.cells[self.max_location[0]][self.max_location[1]] = self.max
 
             if self.measure() == 10:
                 self.bomb_found = True

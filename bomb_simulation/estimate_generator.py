@@ -5,8 +5,9 @@ from bomb_simulation.distance import euclidean_distance
 class EstimateGenerator:
     def __init__(self, heat_map, bomb_location):
         self.heat_map = heat_map
+        self.last_heat_map_number_points = 0
         self.bomb_location = bomb_location
-        self.kriging = Kriging(heat_map)
+        self.kriging = None
         self.prediction_points = []
         self.do_prediction_grid = True
         self.min = 5
@@ -33,26 +34,87 @@ class EstimateGenerator:
             return False
 
     def update_heat_map(self, new_heat_map):
+        """
+        This updates the Heat Map based on measurements found by the robots.
+        I resets the Kriging Lag and SV matrix and calculates the valid area
+        to estimate points based on the range from the furthest known points
+
+        :param new_heat_map:
+        :return:
+        """
         self.heat_map = new_heat_map
+
+        # Validate that there are a least a minimum number of points in the
+        # heat map before Kriging can occur
+        # Also mark the min and max known points in the heat map for the
+        # prediction grid
         number_points = 0
+        min_x = self.heat_map.width
+        max_x = 0
+        min_y = self.heat_map.height
+        max_y = 0
         for y in range(self.heat_map.height):
             for x in range(self.heat_map.width):
+                # this means it had a non-zero measured value by a robot
                 if self.heat_map.cells[x][y] >= 1:
                     number_points += 1
+                    # Find the smallest X,Y and largest X,Y with a measured
+                    # value
+                    if x < min_x:
+                        min_x = x
+                    if y < min_y:
+                        min_y = y
+                    if x > max_x:
+                        max_x = x
+                    if y > max_y:
+                        max_y = y
+        # If there is not enough measured points, cannot do Kriging
         if number_points < self.min_points:
             self.valid = False
+
+        # If the number of points didn't change from the last round, no point
+        #  in doing Kriging
+        elif number_points == self.last_heat_map_number_points:
+            self.valid = False
+
+        # Do Kriging
         else:
+            self.last_heat_map_number_points = number_points
             self.kriging = Kriging(new_heat_map)
+            if max_x > 0 or max_y > 0:
+                # Create the Prediction Grid a rectangle with corners a (range)
+                # distance above/left of the min and below/right of the max
+                # if the min goes past the grid, reset to the grid boundaries
+                min_x = max(min_x - self.kriging.range, 0)
+                min_y = max(min_y - self.kriging.range, 0)
+                max_x = min(max_x + self.kriging.range, self.heat_map.width-1)
+                max_y = min(max_y + self.kriging.range, self.heat_map.height-1)
+                self.prediction_grid = [[min_x, min_y],
+                                        [max_x, max_y]]
+                print(self.prediction_grid)
+            # Reset all the prediction points from the last run
             self.prediction_points = []
+
+            # If the current Best Z was measured and was not 10, reset the
+            # best z estimate
             if len(self.best_z) >= 2 and \
                     self.heat_map.cells[self.best_z[0]][self.best_z[1]] >= 1:
                 self.best_z = []
+
+            # Setup the Kriging Lag and SV Matrices
             if self.kriging.setup():
                 self.valid = True
             else:
                 self.valid = False
 
     def add_estimates(self, x, y):
+        """
+        Manually add x,y to the prediction points if they do not already
+        exist in it.  Makes sure we don't estimate a point twice
+        :param x:
+        :param y:
+        :return:
+        """
         found = False
         for estimate in self.prediction_points:
             if x == estimate[0] and y == estimate[1]:
@@ -61,12 +123,21 @@ class EstimateGenerator:
             self.prediction_points.append([x, y])
 
     def get_points_to_predict(self, robots):
+        """
+        Based on the current state of the heat map, gathers all the points
+        that need to be estimated this round.
+        :param robots:
+        :return:
+        """
         if self.valid:
+            # If the prediction grid exists, then use it to generate points
+            # that have not been measured within a limited search space
             if self.do_prediction_grid and len(self.prediction_grid) > 0:
                 for y in range(self.prediction_grid[0][1], self.prediction_grid[1][1]+1):
                     for x in range(self.prediction_grid[0][0], self.prediction_grid[1][0]+1):
                         if self.kriging.heat_map.cells[x][y] <= 0:
                             self.add_estimates(x, y)
+
             elif self.all:
                 for y in range(self.kriging.heat_map.height):
                     for x in range(self.kriging.heat_map.width):

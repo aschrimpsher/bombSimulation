@@ -10,8 +10,6 @@ class RobotController:
         self.grid = grid
         self.MAX_STEPS = grid.width * grid.height
         self.heat_map = Grid(grid.width, grid.height)
-        self.heat_map1 = Grid(grid.width, grid.height)
-        self.heat_map2 = Grid(grid.width, grid.height)
         self.estimate_generator = EstimateGenerator(self.heat_map, self.grid.bomb_location)
         self.robots = robots
         self.steps = 0
@@ -26,7 +24,8 @@ class RobotController:
         self.guess = guess
         self.best_z = []
         self.last_z = []
-        self.interval = max([int((grid.width * grid.height) / 250), 3])
+        # self.interval = max([int((grid.width * grid.height) / 250), 3])
+        self.interval = 3
         if self.ui:
             self.graphics = Graphics(self.heat_map, self.robots)
 
@@ -50,8 +49,7 @@ class RobotController:
             self.heat_map.cells[x][y] = robot.measure()
             if self.estimate_generator.found_bomb():
                 if closestRobot == robot.id:
-                    robot.manual_drive(self.estimate_generator.best_z[0],
-                                   self.estimate_generator.best_z[1])
+                    robot.manual_drive(self.estimate_generator.best_z[0], self.estimate_generator.best_z[1])
             robot.go()
             if robot.bomb_found is True:
                 if self.ascii is True:
